@@ -15,11 +15,18 @@
 file (GLOB VRS_UTILS_CLI_SRCS *.cpp *.h *.hpp)
 
 add_library(vrs_utils_cli ${VRS_UTILS_CLI_SRCS})
-target_include_directories(vrs_utils_cli PUBLIC ${VRS_SOURCE_DIR})
+find_package(OpenCV REQUIRED)
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+target_include_directories(vrs_utils_cli 
+  PUBLIC 
+    ${VRS_SOURCE_DIR} 
+    ${OpenCV_INCLUDE_DIRS}
+)
 target_link_libraries(vrs_utils_cli
   PUBLIC
     vrs_utils
   PRIVATE
     vrs_helpers
     vrs_logging
+    ${OpenCV_LIBS}
 )

@@ -15,6 +15,7 @@
 file(GLOB TOOLS_VRS_SRCS *.cpp *.h)
 add_executable(vrs ${TOOLS_VRS_SRCS})
 find_package(OpenCV REQUIRED)
+include_directories( ${OpenCV_INCLUDE_DIRS} )
 target_include_directories(vrs
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..

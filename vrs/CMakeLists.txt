@@ -14,9 +14,6 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-find_package(OpenCV REQUIRED)
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-
 # Make it simpler to find Qt.
 # If CMAKE_PREFIX_PATH isn't set and the env variable QT_DIR is, use it!
 if ("${CMAKE_PREFIX_PATH}" STREQUAL "" AND EXISTS "$ENV{QT_DIR}")

@@ -21,6 +21,7 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include <algorithm>
 
 const std::map<std::string, int> str2backend{
     {"opencv", cv::dnn::DNN_BACKEND_OPENCV}, {"cuda", cv::dnn::DNN_BACKEND_CUDA},
@@ -37,9 +38,9 @@ public:
     FaceMosaicer(
           const std::string& model_path = "/usr/local/share/opencv4/face_detection_yunet_2023mar.onnx",
           const cv::Size& input_size = cv::Size(320, 320),
-          float conf_threshold = 0.6f,
+          float conf_threshold = 0.2f,
           float nms_threshold = 0.3f,
-          int top_k = 5000,
+          int top_k = 20,
           const std::string& backend = "cuda",
           const std::string& target = "cuda")
         : model_path_(model_path), input_size_(input_size),
@@ -64,33 +65,24 @@ public:
         model->setInputSize(input_size_);
     }
 
-    void vrs2mat(std::vector<uint8_t>& pixels, cv::Mat &image)
-    {
-        std::memcpy(image.data, pixels.data(), pixels.size());
-        cv::transpose(image, image);
-        cv::flip(image, image, 1);
-    }
-
-    void mat2vrs(cv::Mat &image, std::vector<uint8_t>& pixels)
-    {
-        cv::transpose(image, image);
-        cv::flip(image, image, 0);
-        std::memcpy(pixels.data(), image.data, pixels.size());
-    }
-
     void mosaic(const cv::Mat& image)
     {
         cv::Mat faces;
         model->detect(image, faces);
         for (int i = 0; i < faces.rows; ++i) {
-            cv::Rect roi(
-                static_cast<int>(faces.at<float>(i, 0)),
-                static_cast<int>(faces.at<float>(i, 1)),
-                static_cast<int>(faces.at<float>(i, 2)),
-                static_cast<int>(faces.at<float>(i, 3))
-            );
-            cv::Mat img_roi = image(roi);
-            cv::GaussianBlur(img_roi, img_roi, cv::Size(roi.width/2*2+1, roi.height/2*2+1), 0);
+            int x = static_cast<int>(faces.at<float>(i, 0));
+            int y = static_cast<int>(faces.at<float>(i, 1));
+            int w = static_cast<int>(faces.at<float>(i, 2));
+            int h = static_cast<int>(faces.at<float>(i, 3));
+            
+            // Clamp roi coordinates
+            x = std::max(0, x);
+            y = std::max(0, y);
+            w = std::min(image.cols - x, w);
+            h = std::min(image.rows - y, h);
+            cv::Point center(x + w / 2, y + h / 2);
+            cv::Size axes(w / 2, h / 2);
+            cv::ellipse(image, center, axes, 0, 0, 360, cv::Scalar(128, 128, 128), -1);
         }
     }
 
@@ -139,27 +131,14 @@ class FaceMosaic : public RecordFilterCopier {
   void filterImage(const CurrentRecord& rec, size_t, const ContentBlock& ib, vector<uint8_t>& pixels)
       override {
     if (!pixels.empty()) {
-
-      const ImageContentBlockSpec imageSpec = ib.image();
-      string pixelFormat = imageSpec.getPixelFormatAsString();
-      uint32_t width = imageSpec.getWidth();
-      uint32_t height = imageSpec.getHeight();
-      uint32_t rawstride = imageSpec.getRawStride();
-      std::cout << width << height << rawstride << std::endl;
-      
-      auto format = ib.image().getImageFormat();
-      if (format == ImageFormat::RAW) {std::cout << "ImageFormat::RAW" << std::endl;} else if (format == ImageFormat::Video) {std::cout << "ImageFormat::Video" << std::endl;} else {std::cout << "unknown" << std::endl;}
-      
-      std::unique_ptr<ContentBlockChunk> imageChunk = std::make_unique<ContentBlockChunk>(ib, rec);
-      std::cout << ib.asString() << std::endl;
-      std::cout << pixels.size() << std::endl;
-      
-      // cv::Mat image(height, width, CV_8UC3);
-      // model->vrs2mat(pixels, image)
-      // model->setInputSize(image.size());
-      // model->mosaic(image);
-      // model->mat2vrs(image, pixels);
-      ;
+      cv::Mat image = cv::imdecode(pixels, cv::IMREAD_COLOR);
+      cv::transpose(image, image);
+      cv::flip(image, image, 1);
+      model->setInputSize(image.size());
+      model->mosaic(image);
+      cv::transpose(image, image);
+      cv::flip(image, image, 0);
+      cv::imencode(".jpg", image, pixels);
     }
   }
   void filterAudio(const CurrentRecord&, size_t, const ContentBlock&, vector<uint8_t>& audioSamples)
