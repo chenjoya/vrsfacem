@@ -1,3 +1,7 @@
+### 0. Install the Latest CMake
+
+Please follow https://apt.kitware.com/.
+
 ### 1. Install System Dependencies for VRS and OpenCV
 
 #### OpenCV dependencies
