@@ -1,3 +1,11 @@
+## VRSFaceM: Face Mosaic for VRS
+
+A C++ implementation to mask human face in .vrs file, which is really helpful for privacy protection.
+
+Face detection algorithm used: https://github.com/ShiqiYu/libfacedetection:
+
+> Performance on WIDER Face AP_easy=0.887, AP_medium=0.871, AP_hard=0.768
+
 ### 1. Install System Dependencies for VRS and OpenCV
 
 #### OpenCV dependencies
@@ -58,7 +66,7 @@ sudo make install -j$(grep -c ^processor /proc/cpuinfo)
 sudo mv face_detection_yunet_2023mar.onnx /usr/local/share/opencv4/
 ```
 
-- (Optional? Do it for safety)
+- (Do it if encounter opencvlib not found error)
 ```
 sudo vi /etc/ld.so.conf.d/opencv.conf
 ``` 
@@ -67,7 +75,11 @@ sudo vi /etc/ld.so.conf.d/opencv.conf
 sudo ldconfig -v
 ```
 
-- 
+- Apply this face mosaic to .vrs file
 ```
-./vrs/build/tools/vrs/vrs copy --facem-vrs input_test.vrs --to output_test.vr
+./vrs/build/tools/vrs/vrs copy --facem-vrs input_test.vrs --to output_test.vrs
 ```
+
+### Contact
+
+joyachen@u.nus.edu
