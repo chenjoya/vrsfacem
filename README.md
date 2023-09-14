@@ -1,6 +1,6 @@
 ### 0. Install the Latest CMake
 
-Please follow https://apt.kitware.com/.
+Please follow https://apt.kitware.com/ to get latest cmake. Ensure ```cmake --version``` >= 3.27.
 
 ### 1. Install System Dependencies for VRS and OpenCV
 
@@ -48,10 +48,10 @@ Note: return to the root folder after opencv installed.
 ```
 cd vrs
 mkdir -p build && cd build
-cmake .. -G Ninja
-ninja all
+cmake ..
+make all -j$(grep -c ^processor /proc/cpuinfo)
 ctest -j8
-sudo ninja install
+sudo make install -j$(grep -c ^processor /proc/cpuinfo)
 ```
 
 ### 4. Running
