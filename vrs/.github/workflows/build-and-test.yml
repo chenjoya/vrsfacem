@@ -1,0 +1,59 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build VRS on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest,  macOS-latest]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get upgrade
+            sudo apt-get install -o Acquire::Retries=5 \
+              cmake git ninja-build libgtest-dev libfmt-dev \
+              libturbojpeg-dev libpng-dev \
+              liblz4-dev libzstd-dev libxxhash-dev \
+              libboost-system-dev libboost-filesystem-dev libboost-thread-dev libboost-chrono-dev libboost-date-time-dev \
+              qtbase5-dev portaudio19-dev
+
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+              brew install cmake git ninja googletest glog fmt \
+                  jpeg-turbo libpng \
+                  lz4 zstd xxhash \
+                  boost \
+                  qt5 portaudio
+
+          else
+              echo "$RUNNER_OS not supported"
+              exit 1
+          fi
+
+      - name: Configure
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+              export QT_DIR=$(find /usr/local/Cellar/qt\@5 -name "5.*" -depth 1)
+          fi
+          mkdir build
+          cmake -S . -B build -G Ninja
+
+      - name: Build and Test C++
+        shell: bash
+        run: |
+          cd build
+          ninja all
+          ctest -j8
