@@ -35,13 +35,14 @@ unzip opencv.zip
 unzip opencv_contrib.zip
 cd opencv-4.8.0
 mkdir -p build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_VERBOSE_MAKEFILE=ON \
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON \
 	-DCMAKE_INSTALL_PREFIX=/usr/local \
 	-DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-4.8.0/modules -DOPENCV_ENABLE_NONFREE=ON\
 	-DBUILD_opencv_python3=OFF -DWITH_1394=OFF \
 	-DWITH_IPP=ON -DWITH_TBB=ON -DWITH_OPENMP=ON -DWITH_PTHREADS_PF=ON \
 	-DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DOPENCV_GENERATE_PKGCONFIG=ON \
-	-DWITH_CUDA=ON -DENABLE_FAST_MATH=ON -DCUDA_FAST_MATH=ON -D WITH_CUBLAS=ON
+	-D WITH_CUDA=ON -D WITH_CUDNN=ON -D OPENCV_DNN_CUDA=ON \
+	-DENABLE_FAST_MATH=ON -DCUDA_FAST_MATH=ON -D WITH_CUBLAS=ON
 make all -j$(grep -c ^processor /proc/cpuinfo)
 sudo make install -j$(grep -c ^processor /proc/cpuinfo)
 ```
@@ -54,7 +55,6 @@ cd vrs
 mkdir -p build && cd build
 cmake ..
 make all -j$(grep -c ^processor /proc/cpuinfo)
-ctest -j8
 sudo make install -j$(grep -c ^processor /proc/cpuinfo)
 ```
 

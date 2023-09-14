@@ -38,7 +38,7 @@ public:
     FaceMosaicer(
           const std::string& model_path = "/usr/local/share/opencv4/face_detection_yunet_2023mar.onnx",
           const cv::Size& input_size = cv::Size(320, 320),
-          float conf_threshold = 0.2f,
+          float conf_threshold = 0.5f,
           float nms_threshold = 0.3f,
           int top_k = 20,
           const std::string& backend = "cuda",
@@ -81,7 +81,7 @@ public:
             w = std::min(image.cols - x, w);
             h = std::min(image.rows - y, h);
             cv::Point center(x + w / 2, y + h / 2);
-            cv::Size axes(w / 2, h / 2);
+            cv::Size axes(w / 3, h / 3);
             cv::ellipse(image, center, axes, 0, 0, 360, cv::Scalar(128, 128, 128), -1);
         }
     }
